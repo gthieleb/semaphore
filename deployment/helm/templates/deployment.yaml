@@ -39,16 +39,23 @@ spec:
           env:
             {{- if .Values.auth.basic.enabled }}
             - name: SEMAPHORE_ADMIN
-              secretKeyRef:
-                name: {{ .Values.auth.basic.externalSecretName }}
-                key: "username"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.basic.externalSecretName }}
+                  key: "username"
             - name: SEMAPHORE_ADMIN_PASSWORD
-              secretKeyRef:
-                name: {{ .Values.auth.basic.externalSecretName }}
-                key: "password"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.basic.externalSecretName }}
+                  key: "password"
             {{- end }}
+            {{- if .Values.database.enabled }}
             - name: SEMAPHORE_DB_DIALECT
               value: {{ .Values.database.dialect }}
+            {{- else }}
+            - name: SEMAPHORE_DB_DIALECT
+              value: bolt
+            {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
