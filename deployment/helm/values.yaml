@@ -105,3 +105,18 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# inject all non secret configuration into a config.json configmap 
+config:
+  enabled: true
+
+database:
+  type: bolt
+
+auth:
+  basic:
+    enable: true
+    externalSecretName: "semaphore-auth-auth"
+  oidc:
+    enable: false
+    externalSecretName: "semaphore-auth-oidc"
