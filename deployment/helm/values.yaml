@@ -5,10 +5,10 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: semaphoreui/semaphore
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""
@@ -110,13 +110,15 @@ affinity: {}
 config:
   enabled: true
 
+# if disabled use internal bolt db
 database:
-  type: bolt
+  enabled: false
+  dialect: postgres
 
 auth:
   basic:
-    enable: true
-    externalSecretName: "semaphore-auth-auth"
+    enabled: true
+    externalSecretName: "semaphore-auth-basic"
   oidc:
-    enable: false
+    enabled: false
     externalSecretName: "semaphore-auth-oidc"
