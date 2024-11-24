@@ -2,10 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "helm.fullname" . }}
-  name: {{ .Release.Name }}-semaphore-ui
   labels:
     {{- include "helm.labels" . | nindent 4 }}
-    app: {{ .Release.Name }}-semaphore-ui
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
@@ -13,7 +11,6 @@ spec:
   selector:
     matchLabels:
       {{- include "helm.selectorLabels" . | nindent 6 }}
-      app: {{ .Release.Name }}-semaphore-ui
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -25,7 +22,6 @@ spec:
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
-        app: {{ .Release.Name }}-semaphore-ui
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -40,8 +36,19 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-        - name: semaphore-ui
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          env:
+            {{- if .Values.auth.basic.enabled }}
+            - name: SEMAPHORE_ADMIN
+              secretKeyRef:
+                name: {{ .Values.auth.basic.externalSecretName }}
+                key: "username"
+            - name: SEMAPHORE_ADMIN_PASSWORD
+              secretKeyRef:
+                name: {{ .Values.auth.basic.externalSecretName }}
+                key: "password"
+            {{- end }}
+            - name: SEMAPHORE_DB_DIALECT
+              value: {{ .Values.database.dialect }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
@@ -73,15 +80,3 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 
-            - containerPort: 3000
-          env:
-            - name: BASIC_AUTH_USERNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: BASIC_AUTH_PASSWORD
-              value: {{ .Values.basicAuth.password | quote }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-      imagePullSecrets:
-        - name: {{ .Values.imagePullSecret }}
